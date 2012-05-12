@@ -1,0 +1,16 @@
+@(responder:Responder)
+
+@main("Mock Server") {
+    <h2>Name</h2>
+    <p>@responder.name</p>
+    <h2>Body</h2>
+    <p>@responder.body</p>
+    @if(!responder.headers.isEmpty){
+        <h2>Headers</h2>
+        <ul>
+        @responder.headers.map { header =>
+            <li><span>@header._1</span> -> <span>@header._2</span></li>
+        }
+        </ul>
+    }
+}

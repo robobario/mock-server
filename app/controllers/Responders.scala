@@ -3,6 +3,7 @@ package controllers
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
+import controllers.ResponderLogger.Log
 
 object Responders extends Controller{
   case class CreateResponder(body: String, headers : List[Header])
@@ -19,16 +20,35 @@ object Responders extends Controller{
   )
 
   def show(responderName:String) = Action{
-    Ok(views.html.newresponder(form,responderName))
+    Async{ResponderLibrary.apply(responderName).map(responder=>
+      detailsOrCreationForm(responder, responderName)
+    )}
+  }
+
+
+  def detailsOrCreationForm(responder: Option[Responder],responderName:String): Result = {
+    responder.map(r=>Ok(views.html.existingresponder(r))).getOrElse(Ok(views.html.newresponder(form,responderName)))
   }
 
   def renderResponder(responderName:String) = Action{
-    Async{ResponderLibrary.apply(responderName)}
+    request =>
+    Async{ResponderLibrary.apply(responderName).map(responder=>
+      responder.map(responder => createResponse(responder,request)).getOrElse(NotFound)
+    )}
+  }
+
+
+  def createResponse(responder: Responder,request:Request[_]): SimpleResult[String] = {
+    Actors.loggers ! Log(responder.name, request.toString)
+    Ok(responder.body).withHeaders(responder.headers: _*)
   }
 
   def handleSubmission(responderName:String, responder: CreateResponder): Result = {
-    ResponderLibrary.create(responderName, responder.body, responder.headers.map(header=>header.name -> header.value):_*)
-    Ok("woot")
+    Async{
+      ResponderLibrary.create(responderName, responder.body, responder.headers.map(header=>header.name -> header.value):_*).map(f=>
+          Ok(views.html.existingresponder(f))
+      )
+    }
   }
 
   def submit(responderName:String) = Action {
