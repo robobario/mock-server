@@ -6,29 +6,45 @@ import controllers.ResponderLogger.{Quit, Join, Log}
 import play.api.mvc.Request
 import java.util.Date
 import java.text.SimpleDateFormat
+import play.api.libs.json._
+
+case class LoggedRequest(message:String, request:Request[_])
+
+object LoggedRequest {
+     implicit object LoggedRequestFormat extends Writes[LoggedRequest] {
+       def writes(l: LoggedRequest): JsValue =
+         JsObject(
+           List(
+             "message" -> Json.toJson(l.message),
+             "headers" -> Json.toJson(l.request.headers.toSimpleMap.map(header => header._1 -> Json.toJson(header._2)))
+           )
+         )
+     }
+}
+
 
 class ResponderLogger extends Actor {
 
-  var responderToLogPushers: Map[String, Seq[PushEnumerator[String]]] = Map()
+  var responderToLogPushers: Map[String, Seq[PushEnumerator[LoggedRequest]]] = Map()
 
   def doLog(name: String, request: Request[_]) {
     responderToLogPushers.get(name).map(_.foreach(_.push(transformToLogMessage(request))))
   }
 
 
-  def transformToLogMessage(request: Request[_]): String = {
-    val base: String = (new SimpleDateFormat("yyyy.MM.dd G 'at' HH:mm:ss z") format (new Date(): Date)) + ": " + request.toString
-    base + request.contentType.map(" Content-Type: " + _).getOrElse("") + request.headers.get("Accept").map(" Accept: " + _).getOrElse("")
+  def transformToLogMessage(request: Request[_]): LoggedRequest = {
+    val message: String = (new SimpleDateFormat("yyyy.MM.dd G 'at' HH:mm:ss z") format (new Date(): Date)) + ": " + request.toString
+    LoggedRequest(message,request)
   }
 
   def doJoin(name: String) {
-    lazy val channel: PushEnumerator[String] = Enumerator.imperative[String](onComplete = self ! Quit(name, channel))
+    lazy val channel: PushEnumerator[LoggedRequest] = Enumerator.imperative[LoggedRequest](onComplete = self ! Quit(name, channel))
     val pushers = responderToLogPushers.get(name).map(f => f :+ channel).getOrElse(Seq(channel))
     responderToLogPushers = responderToLogPushers + (name -> pushers)
     sender ! channel
   }
 
-  def doQuit(name: String, channel: PushEnumerator[String]) {
+  def doQuit(name: String, channel: PushEnumerator[LoggedRequest]) {
     val pushers = responderToLogPushers.get(name).map(f => f.filterNot(_ == channel)).getOrElse(Seq())
     responderToLogPushers = responderToLogPushers + (name -> pushers)
   }
@@ -48,6 +64,6 @@ object ResponderLogger {
 
   case class Join(name: String) extends Event
 
-  case class Quit(name: String, channel: PushEnumerator[String]) extends Event
+  case class Quit(name: String, channel: PushEnumerator[LoggedRequest]) extends Event
 
 }

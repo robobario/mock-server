@@ -23,11 +23,12 @@
         <div id="messages" class="span12"></div>
 
         <script type="text/javascript" charset="utf-8">
-            var message = function(msg) {
-                $('#messages').append('<p>' + msg + '</p>')
-            }
+//            var message = function(msg) {
+//                $('#messages').prepend('<p>' + msg.message + '</p>')
+//            }
         </script>
     </div>
 
     <iframe src="@routes.Responders.stream(responder.name)" style="display:none"></iframe>
 }
+<script src="@routes.Assets.at("javascripts/logger.js")" type="text/javascript"></script>

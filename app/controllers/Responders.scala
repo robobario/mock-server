@@ -6,6 +6,7 @@ import controllers.ResponderLogger.{Join, Log}
 import play.api.mvc._
 import play.api.libs._
 
+import json.Json
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
@@ -69,8 +70,8 @@ object Responders extends Controller{
   def stream(name:String) = Action {
     AsyncResult {
       implicit val timeout:Timeout = 5000
-      (Actors.loggers ? (Join(name)) ).mapTo[Enumerator[String]].asPromise.map { chunks =>
-        Ok.stream(chunks &> Comet( callback = "parent.message"))
+      (Actors.loggers ? (Join(name)) ).mapTo[Enumerator[LoggedRequest]].asPromise.map { chunks =>
+        Ok.stream(chunks &> Comet[LoggedRequest](callback = "parent.message")(encoder = Comet.CometMessage[LoggedRequest](request => Json.toJson(request).toString())))
       }
     }
   }

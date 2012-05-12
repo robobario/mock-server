@@ -24,3 +24,4 @@ handleAdd = ->
 
 $ ->
   $("#addHeader").click(handleAdd)
+  $("#modal").hide()
