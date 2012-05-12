@@ -2,8 +2,16 @@ package controllers
 
 import play.api.data.Form
 import play.api.data.Forms._
+import controllers.ResponderLogger.{Join, Log}
 import play.api.mvc._
-import controllers.ResponderLogger.Log
+import play.api.libs._
+
+import play.api.libs.iteratee._
+import play.api.libs.concurrent._
+
+import akka.pattern.ask
+import akka.util.Timeout
+
 
 object Responders extends Controller{
   case class CreateResponder(body: String, headers : List[Header])
@@ -39,7 +47,7 @@ object Responders extends Controller{
 
 
   def createResponse(responder: Responder,request:Request[_]): SimpleResult[String] = {
-    Actors.loggers ! Log(responder.name, request.toString)
+    Actors.loggers ! Log(responder.name, request)
     Ok(responder.body).withHeaders(responder.headers: _*)
   }
 
@@ -55,5 +63,15 @@ object Responders extends Controller{
     implicit request=>
       val responder: CreateResponder = form.bindFromRequest.get
       handleSubmission(responderName,responder)
+  }
+
+  //Called from existingresponder.scala.html
+  def stream(name:String) = Action {
+    AsyncResult {
+      implicit val timeout:Timeout = 5000
+      (Actors.loggers ? (Join(name)) ).mapTo[Enumerator[String]].asPromise.map { chunks =>
+        Ok.stream(chunks &> Comet( callback = "parent.message"))
+      }
+    }
   }
 }

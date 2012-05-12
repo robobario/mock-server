@@ -1,16 +1,33 @@
 @(responder:Responder)
 
 @main("Mock Server") {
-    <h2>Name</h2>
-    <p>@responder.name</p>
-    <h2>Body</h2>
-    <p>@responder.body</p>
-    @if(!responder.headers.isEmpty){
-        <h2>Headers</h2>
-        <ul>
-        @responder.headers.map { header =>
-            <li><span>@header._1</span> -> <span>@header._2</span></li>
+    <div class="row span12">
+        <dl class="dl-horizontal">
+            <dt>Name</dt>
+            <dd>@responder.name</dd>
+            <dt>Body</dt>
+            <dd>@responder.body</dd>
+         </dl>
+
+        @if(!responder.headers.isEmpty){
+            <h6>Headers</h6>
+            <ul>
+            @responder.headers.map { header =>
+                <li><span>@header._1</span> -> <span>@header._2</span></li>
+            }
+            </ul>
         }
-        </ul>
-    }
+    </div>
+    <div class="row">
+        <h2>Log</h2>
+        <div id="messages" class="span12"></div>
+
+        <script type="text/javascript" charset="utf-8">
+            var message = function(msg) {
+                $('#messages').append('<p>' + msg + '</p>')
+            }
+        </script>
+    </div>
+
+    <iframe src="@routes.Responders.stream(responder.name)" style="display:none"></iframe>
 }

@@ -5,7 +5,8 @@
 # Home page
 GET     /                                   controllers.Application.index
 GET     /:responderName                     controllers.Responders.show(responderName:String)
-GET     /:responderName/responder            controllers.Responders.renderResponder(responderName:String)
+GET     /:responderName/liveLog             controllers.Responders.stream(responderName:String)
+GET     /:responderName/responder           controllers.Responders.renderResponder(responderName:String)
 POST    /:responderName                     controllers.Responders.submit(responderName:String)
 
 # Map static resources from the /public folder to the /assets URL path
