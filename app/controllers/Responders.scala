@@ -12,6 +12,9 @@ import play.api.libs.concurrent._
 
 import akka.pattern.ask
 import akka.util.Timeout
+import play.api.mvc.MultipartFormData.FilePart
+import play.api.libs.Files.TemporaryFile
+import java.io.File
 
 
 object Responders extends Controller{
@@ -64,23 +67,31 @@ object Responders extends Controller{
   }
 
 
-  def createResponse(responder: Responder,request:Request[_]): SimpleResult[String] = {
+  def createResponse(responder: Responder,request:Request[_]): Result = {
     Actors.loggers ! Log(responder.name, request)
-    Ok(responder.body).withHeaders(responder.headers: _*)
+    responder.binary.map(f=>binaryResponse(f,responder)).getOrElse(Ok(responder.body).withHeaders(responder.headers: _*))
   }
 
-  def handleSubmission(responderName:String, responder: CreateResponder): Result = {
+
+  def binaryResponse(f: File,responder:Responder): Result = {
+    val source = scala.io.Source.fromFile(f)
+    val byteArray = source.map(_.toByte).toArray
+    source.close()
+    Ok(byteArray).withHeaders(responder.headers: _*)
+  }
+
+  def handleSubmission(responderName:String, responder: CreateResponder, binary:Option[FilePart[TemporaryFile]]): Result = {
     Async{
-      ResponderLibrary.create(responderName, responder.body, responder.headers.map(header=>header.name -> header.value):_*).map(f=>
+      ResponderLibrary.create(responderName, responder.body,binary,responder.headers.map(header=>header.name -> header.value):_*).map(f=>
           Ok(views.html.existingresponder(f))
       )
     }
   }
 
-  def submit(responderName:String) = Action {
+  def submit(responderName:String) = Action(parse.multipartFormData) {
     implicit request=>
       val responder: CreateResponder = form.bindFromRequest.get
-      handleSubmission(responderName,responder)
+      handleSubmission(responderName,responder,request.body.file("binary"))
   }
 
   //Called from existingresponder.scala.html

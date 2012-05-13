@@ -10,9 +10,11 @@
 </form>
 
 <ul id="headers"></ul>
-@helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm") {
+@helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm", 'enctype -> "multipart/form-data") {
 
         @helper.textarea(myForm("body"),'_label -> "Response Body",'class -> "input-xxlarge")
+
+        <input type="file" name="binary">
 
         <div class="form-actions">
             <button type="submit" class="btn">create</button>

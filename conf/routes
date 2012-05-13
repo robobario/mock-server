@@ -10,5 +10,11 @@ GET     /:responderName/liveLog             controllers.Responders.stream(respon
 GET     /:responderName/responder           controllers.Responders.renderResponder(responderName:String)
 POST    /:responderName                     controllers.Responders.submit(responderName:String)
 
+
+# Hacks for trailing slashes
+GET     /:responderName/                     controllers.Responders.show(responderName:String)
+GET     /:responderName/edit/                controllers.Responders.edit(responderName:String)
+GET     /:responderName/responder/           controllers.Responders.renderResponder(responderName:String)
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)
