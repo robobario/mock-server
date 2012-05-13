@@ -24,3 +24,8 @@
 
 <script src="@routes.Assets.at("javascripts/app.js")" type="text/javascript"></script>
 
+<script type="text/javascript">
+$(new function() {
+@(myForm.value.map {f=>f.headers.map{header=>"window.addHeader(\'"+header.name+"\',\'"+header.value+"\');"}}.getOrElse(""))
+})
+</script>

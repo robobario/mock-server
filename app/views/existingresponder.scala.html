@@ -2,21 +2,24 @@
 
 @main("Mock Server") {
     <div class="row span12">
-        <dl class="dl-horizontal">
-            <dt>Name</dt>
-            <dd>@responder.name</dd>
-            <dt>Body</dt>
-            <dd>@responder.body</dd>
-         </dl>
+        <div class="span6">
+            <h6>Name</h6>
+            <p>@responder.name</p>
+            <h6>Body</h6>
+            <p>@responder.body</p>
 
-        @if(!responder.headers.isEmpty){
-            <h6>Headers</h6>
-            <ul>
-            @responder.headers.map { header =>
-                <li><span>@header._1</span> -> <span>@header._2</span></li>
+            @if(!responder.headers.isEmpty){
+                <h6>Headers</h6>
+                <ul>
+                @responder.headers.map { header =>
+                    <li><span>@header._1</span> -> <span>@header._2</span></li>
+                }
+                </ul>
             }
-            </ul>
-        }
+         </div>
+        <div class="span6">
+            <a class="btn btn-large btn-primary" href="@routes.Responders.edit(responder.name)">Edit Da Responder Wot Responds</a>
+        </div>
     </div>
     <div class="row">
         <h2>Log</h2>

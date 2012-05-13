@@ -1,7 +1,9 @@
-@(message: String)
+@(links: Iterable[(String,String)])
 
 @main("Mock Server") {
-    
-    @message
+    <h2>Existing Responders</h2>
+    @links.map { nameToLink =>
+        <a href="@nameToLink._2">@nameToLink._1</a>
+    }
     
 }

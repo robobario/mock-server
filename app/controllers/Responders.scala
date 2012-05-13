@@ -28,9 +28,26 @@ object Responders extends Controller{
     )(CreateResponder.apply)(CreateResponder.unapply)
   )
 
+  def toResponderForm(responder: Responder): Responders.CreateResponder = {
+     CreateResponder(responder.body,responder.headers.map(h=>Header(h._1,h._2)).toList)
+  }
+
   def show(responderName:String) = Action{
     Async{ResponderLibrary.apply(responderName).map(responder=>
       detailsOrCreationForm(responder, responderName)
+    )}
+  }
+
+  def edit(responderName:String) = Action{
+    Async{ResponderLibrary(responderName).map(responder=>
+      responder.map(r=>Ok(views.html.newresponder(form.fill(toResponderForm(r)),responderName))).getOrElse(Ok(views.html.newresponder(form,responderName)))
+    )}
+  }
+
+  def listResponders = Action{
+    implicit request =>
+    Async{ResponderLibrary.all.map(responders=>
+      Ok(views.html.index(responders.map(responder => responder.name -> routes.Responders.show(responder.name).absoluteURL(false))))
     )}
   }
 
@@ -41,7 +58,7 @@ object Responders extends Controller{
 
   def renderResponder(responderName:String) = Action{
     request =>
-    Async{ResponderLibrary.apply(responderName).map(responder=>
+    Async{ResponderLibrary(responderName).map(responder=>
       responder.map(responder => createResponse(responder,request)).getOrElse(NotFound)
     )}
   }
