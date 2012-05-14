@@ -69,15 +69,12 @@ object Responders extends Controller{
 
   def createResponse(responder: Responder,request:Request[_]): Result = {
     Actors.loggers ! Log(responder.name, request)
-    responder.binary.map(f=>binaryResponse(f,responder)).getOrElse(Ok(responder.body).withHeaders(responder.headers: _*))
+    responder.absolutePath.map(path=>binaryResponse(path,responder)).getOrElse(Ok(responder.body).withHeaders(responder.headers: _*))
   }
 
 
-  def binaryResponse(f: File,responder:Responder): Result = {
-    val source = scala.io.Source.fromFile(f)
-    val byteArray = source.map(_.toByte).toArray
-    source.close()
-    Ok(byteArray).withHeaders(responder.headers: _*)
+  def binaryResponse(path:String,responder:Responder): Result = {
+    Ok.stream(Enumerator.fromFile(new File(path))).withHeaders(responder.headers:_*)
   }
 
   def handleSubmission(responderName:String, responder: CreateResponder, binary:Option[FilePart[TemporaryFile]]): Result = {

@@ -14,7 +14,7 @@ import play.api.libs.Files
 import play.api.Play.current
 import scala.Predef._
 
-case class Responder(name:String, body:String, headers:Seq[(String,String)],binary:Option[File])
+case class Responder(name:String, body:String, headers:Seq[(String,String)],absolutePath:Option[String])
 
 object ResponderLibrary {
   trait Event
@@ -48,7 +48,7 @@ class ResponderLibrary extends Actor {
 
   def create(name: String, body: String, headers:Seq[(String,String)],binary:Option[FilePart[TemporaryFile]]) {
     val heads = binary.map(f=>headers :+ ("Content-Length"->f.ref.file.length.toString)).getOrElse(headers)
-    val responder: Responder = Responder(name, body, heads, binary.map(f=>moveFile(f,name)))
+    val responder: Responder = Responder(name, body, heads, binary.map(f=>moveFile(f,name).getAbsolutePath))
     responders = responders + (name -> responder)
     sender ! responder
   }
