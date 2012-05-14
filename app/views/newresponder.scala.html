@@ -34,7 +34,7 @@
 </div>
 
 <div id="bodyForm" class="row span12">
-@helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm",'enctype -> "multipart/form-data", 'class -> "form-horizontal") {
+@helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm",'enctype -> "multipart/form-data", 'class -> "form-horizontal responder-form") {
       <fieldset>
         @helper.textarea(myForm("body"),'_label -> "Response Body",'class -> "input-xxlarge")
 
@@ -46,7 +46,7 @@
 </div>
 
 <div id="fileForm" style="display:none" class="row span12">
-    @helper.form(action = routes.Responders.submitFile(name),'id -> "createFileResponderForm", 'enctype -> "multipart/form-data") {
+    @helper.form(action = routes.Responders.submitFile(name),'id -> "createFileResponderForm", 'enctype -> "multipart/form-data responder-form") {
 
     <input type="file" name="binary">
 
