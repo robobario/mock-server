@@ -19,6 +19,7 @@ import java.io.File
 
 object Responders extends Controller{
   case class CreateResponder(body: String, headers : List[Header])
+  case class CreateFileResponder(headers : List[Header])
   case class Header(name:String, value:String)
 
   val form:Form[CreateResponder] = Form(
@@ -29,6 +30,15 @@ object Responders extends Controller{
         "value"-> text
       )(Header.apply)(Header.unapply))
     )(CreateResponder.apply)(CreateResponder.unapply)
+  )
+
+  val fileForm:Form[CreateFileResponder] = Form(
+    mapping(
+      "headers" -> list(mapping(
+        "name"-> text,
+        "value"-> text
+      )(Header.apply)(Header.unapply))
+    )(CreateFileResponder.apply)(CreateFileResponder.unapply)
   )
 
   def toResponderForm(responder: Responder): Responders.CreateResponder = {
@@ -85,10 +95,24 @@ object Responders extends Controller{
     }
   }
 
-  def submit(responderName:String) = Action(parse.multipartFormData) {
+  def handleFileSubmission(responderName:String, responder: CreateFileResponder, binary:Option[FilePart[TemporaryFile]]): Result = {
+    Async{
+      ResponderLibrary.create(responderName, "" ,binary,responder.headers.map(header=>header.name -> header.value):_*).map(f=>
+        Ok(views.html.existingresponder(f))
+      )
+    }
+  }
+
+  def submitFile(responderName:String) = Action(parse.multipartFormData) {
+    implicit request=>
+      val responder: CreateFileResponder = fileForm.bindFromRequest.get
+      handleFileSubmission(responderName,responder,request.body.file("binary"))
+  }
+
+  def submit(responderName:String) = Action {
     implicit request=>
       val responder: CreateResponder = form.bindFromRequest.get
-      handleSubmission(responderName,responder,request.body.file("binary"))
+      handleSubmission(responderName,responder, None)
   }
 
   //Called from existingresponder.scala.html

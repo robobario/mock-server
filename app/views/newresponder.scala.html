@@ -2,26 +2,60 @@
 @import MyHelpers._
 
 @main("Mock Server") {
+<div class="row span12">
+    <div class="btn-group button-radio" data-toggle="buttons-radio">
+        <button class="btn btn-primary active" id="textResponse">Text Response</button>
+        <button class="btn btn-primary" id="fileResponse">File Response</button>
+    </div>
+</div>
+<div class="row span12">
+        <form class="form-inline">
+            <input type="text" id="header_name" name="header_name" value="" placeholder="Header Name">
+            <input type="text" id="header_value" name="header_value" value="" placeholder="Header Value">
+            <a class="btn" id="addHeader">Add</a>
+        </form>
+        <ul id="headers"></ul>
+</div>
+<div class="row span12">
+    <div class="btn-group">
+        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+            Content-Type Presets
+            <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu content-type-dropdown">
+            <li><a name="text/html">html</a></li>
+            <li><a name="text/javascript">javascript</a></li>
+            <li><a name="image/jpeg">jpeg</a></li>
+            <li><a name="image/png">png</a></li>
+            <li><a name="application/json">json</a></li>
+            <li><a name="application/xml">xml</a></li>
+        </ul>
+    </div>
+</div>
 
-<form class="form-inline">
-    <input type="text" id="header_name" name="header_name" value="" placeholder="Header Name">
-    <input type="text" id="header_value" name="header_value" value="" placeholder="Header Value">
-    <a class="btn" id="addHeader">Add</a>
-</form>
-
-<ul id="headers"></ul>
-@helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm", 'enctype -> "multipart/form-data") {
-
+<div id="bodyForm" class="row span12">
+@helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm",'enctype -> "multipart/form-data", 'class -> "form-horizontal") {
+      <fieldset>
         @helper.textarea(myForm("body"),'_label -> "Response Body",'class -> "input-xxlarge")
-
-        <input type="file" name="binary">
 
         <div class="form-actions">
             <button type="submit" class="btn">create</button>
         </div>
-
+      </fieldset>
      }
+</div>
 
+<div id="fileForm" style="display:none" class="row span12">
+    @helper.form(action = routes.Responders.submitFile(name),'id -> "createFileResponderForm", 'enctype -> "multipart/form-data") {
+
+    <input type="file" name="binary">
+
+    <div class="form-actions">
+        <button type="submit" class="btn">create</button>
+    </div>
+
+    }
+</div>
 }
 
 <script src="@routes.Assets.at("javascripts/app.js")" type="text/javascript"></script>

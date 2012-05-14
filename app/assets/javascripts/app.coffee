@@ -1,29 +1,47 @@
 headerButtonToFormInput = {}
-headerNames = []
-count = 0
+headerNames = {}
 
-handleDelete = (count,name) ->
-  () ->
-    $("#headers_"+count+"__name").remove()
-    $("#headers_"+count+"__value").remove()
-    $("#header_"+count).remove()
-    index = headerNames.indexOf(name)
-    headerNames.splice(index, 1)
+handleDelete = (name) ->
+  ()->
+    index = headerNames[name]
+    if index?
+      $("#headers_"+index+"__name").remove()
+      $("#headers_"+index+"__value").remove()
+      $("#header_"+index).remove()
+      delete headerNames[name]
+
+pushHeader = (name, index) ->
+  headerNames[name]=index
 
 window.addHeader = (name, value) ->
-  headerNames.push(name)
-  $("#createResponderForm").append("<input style=\"display:none\" type=\"text\" id=\"headers_" + count + "__name\" name=\"headers[" + count + "].name\" value=\"" + name + "\"><input style=\"display:none\" type=\"text\" id=\"headers_" + count + "__value\" name=\"headers[" + count + "].value\" value=\"" + value + "\">")
+  count = 0
+  handleDelete(name)()
+  pushHeader(name,count)
+  $("form").append("<input style=\"display:none\" type=\"text\" id=\"headers_" + count + "__name\" name=\"headers[" + count + "].name\" value=\"" + name + "\"><input style=\"display:none\" type=\"text\" id=\"headers_" + count + "__value\" name=\"headers[" + count + "].value\" value=\"" + value + "\">")
   $("#headers").append("<li id=\"header_"+count+"\">"+name+"->"+value+" <a id=\"delete_"+count+"\" class=\"btn btn-mini\">delete</a></li>")
-  $("#delete_"+count.toString()).click(handleDelete(count,name))
+  $("#delete_"+count.toString()).click(handleDelete(name))
   count++
 
 handleAdd = ->
   toCreate =
     name: $("#header_name").val()
     value: $("#header_value").val()
-  if toCreate.name? && toCreate.value?  && headerNames.indexOf(toCreate.name) == -1
-    addHeader(toCreate.name,toCreate.value)
+  addHeader(toCreate.name,toCreate.value)
 
 $ ->
   $("#addHeader").click(handleAdd)
   $("#modal").hide()
+  $('.button-radio').button()
+  $('#textResponse').button()
+  $('#textResponse').click((event)->
+    $("#fileForm").hide()
+    $('#bodyForm').show()
+  )
+  $('#fileResponse').click((event)->
+    $('#fileForm').show()
+    $('#bodyForm').hide()
+  )
+  $('.dropdown-toggle').dropdown()
+  $('.content-type-dropdown').click((event)->
+     window.addHeader("Content-Type",event.target.name)
+  )

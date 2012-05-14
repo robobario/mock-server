@@ -6,9 +6,10 @@
 GET     /                                   controllers.Responders.listResponders
 GET     /:responderName                     controllers.Responders.show(responderName:String)
 GET     /:responderName/edit                controllers.Responders.edit(responderName:String)
-GET     /:responderName/liveLog             controllers.Responders.stream(responderName:String)
+GET     /:responderName/livelog             controllers.Responders.stream(responderName:String)
 GET     /:responderName/responder           controllers.Responders.renderResponder(responderName:String)
 POST    /:responderName                     controllers.Responders.submit(responderName:String)
+POST    /:responderName/filesubmit          controllers.Responders.submitFile(responderName:String)
 
 
 # Hacks for trailing slashes
