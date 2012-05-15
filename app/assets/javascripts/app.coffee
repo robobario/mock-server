@@ -15,8 +15,8 @@ class Headers
     remove: (header) ->
         index = headers[header.name]
         if index?
-            $("input[name=headers["+index+"].name]").remove()
-            $("input[name=headers["+index+"].value]").remove()
+            $("input[name='headers["+index+"].name']").remove()
+            $("input[name='headers["+index+"].value']").remove()
             $("#header_"+index).remove()
             headers[header] = null
 
@@ -49,6 +49,6 @@ $ ->
   )
   $('.dropdown-toggle').dropdown()
   $('.content-type-dropdown').click((event)->
-     headers.add(Header "Content-Type",event.target.name)
+     headers.add(new Header "Content-Type",event.target.name)
   )
 
