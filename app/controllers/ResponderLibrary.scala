@@ -14,7 +14,11 @@ import play.api.libs.Files
 import play.api.Play.current
 import scala.Predef._
 
-case class Responder(name:String, body:String, headers:Seq[(String,String)],absolutePath:Option[String])
+case class Responder(name:String, body:String, headers:Seq[(String,String)],absolutePath:Option[String]){
+  def absoluteUrl:String = {
+    routes.Responders.renderResponder(name).url
+  }
+}
 
 object ResponderLibrary {
   trait Event
