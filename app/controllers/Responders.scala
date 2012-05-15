@@ -15,12 +15,14 @@ import akka.util.Timeout
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.libs.Files.TemporaryFile
 import java.io.File
-
+import play.api.Play.current
+import play.api.Logger
 
 object Responders extends Controller{
   case class CreateResponder(body: String, headers : List[Header])
   case class CreateFileResponder(headers : List[Header])
   case class Header(name:String, value:String)
+  implicit val timeout:Timeout = 5000
 
   val form:Form[CreateResponder] = Form(
     mapping(
@@ -71,17 +73,35 @@ object Responders extends Controller{
 
   def renderResponder(responderName:String) = Action{
     request =>
-    Async{ResponderLibrary(responderName).map(responder=>
-      responder.map(responder => createResponse(responder,request)).getOrElse(NotFound)
+    Async{ResponderLibrary(responderName).flatMap(responder=>
+      responder.map(responder => applyTransformers(responder, request)).getOrElse(Akka.future(NotFound))
     )}
   }
 
 
-  def createResponse(responder: Responder,request:Request[_]): Result = {
-    Actors.loggers ! Log(responder.name, request)
-    responder.absolutePath.map(path=>binaryResponse(path,responder)).getOrElse(Ok(responder.body).withHeaders(responder.headers: _*))
+  def applyTransformers(responder: Responder, request: Request[AnyContent]): Promise[Result] = {
+    createResponse(responder, request)
   }
 
+  def createResponse(responder: Responder,request:Request[_]): Promise[Result] = {
+    Actors.loggers ! Log(responder.name, request)
+    responder.absolutePath.map(path=>Akka.future(binaryResponse(path,responder))).getOrElse(createBodyResponse(responder,request))
+  }
+
+
+  def createBodyResponse(responder: Responder,request:Request[_]): Promise[SimpleResult[String]] = {
+    def doQueryParamSubstitution(): (String, QuerySubstitutionRule) => String = {
+      (body: String, rule: QuerySubstitutionRule) =>
+        request.queryString.get(rule.queryParamName).map(_.mkString).map{param=>
+          body.replaceAll(rule.token, param)
+        }.getOrElse(body)
+    }
+
+    (Actors.transformers ? GetTransformer(responder.name)).map{
+      case Some(Transformer(queryParam))=> queryParam.foldLeft[String](responder.body){doQueryParamSubstitution()}
+      case _ => responder.body
+    }.map(body => Ok(body).withHeaders(responder.headers: _*)).asPromise
+  }
 
   def binaryResponse(path:String,responder:Responder): Result = {
     Ok.stream(Enumerator.fromFile(new File(path))).withHeaders(responder.headers:_*)

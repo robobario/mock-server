@@ -11,6 +11,10 @@ GET     /:responderName/responder           controllers.Responders.renderRespond
 POST    /:responderName                     controllers.Responders.submit(responderName:String)
 POST    /:responderName/filesubmit          controllers.Responders.submitFile(responderName:String)
 
+# Transformers
+PUT     /:responderName/transformer         controllers.Transformers.putTransformer(responderName:String)
+GET     /:responderName/transformer         controllers.Transformers.getTransformer(responderName:String)
+
 
 # Hacks for trailing slashes
 GET     /:responderName/                     controllers.Responders.show(responderName:String)
