@@ -46,7 +46,7 @@
 </div>
 
 <div id="fileForm" style="display:none" class="row span12">
-    @helper.form(action = routes.Responders.submitFile(name),'id -> "createFileResponderForm", 'enctype -> "multipart/form-data responder-form") {
+    @helper.form(action = routes.Responders.submitFile(name),'id -> "createFileResponderForm", 'enctype -> "multipart/form-data", 'class -> "responder-form") {
 
     <input type="file" name="binary">
 
