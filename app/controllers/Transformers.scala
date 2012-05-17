@@ -5,6 +5,7 @@ import akka.pattern.ask
 import play.api.libs.concurrent._
 import play.api.mvc.{Result, Action, Controller}
 import akka.util.Timeout
+import play.api.Logger
 
 case class Transformer(queryParamSubstitutions : Seq[QuerySubstitutionRule])
 case class QuerySubstitutionRule(token:String, queryParamName:String)
@@ -47,7 +48,7 @@ object Transformers extends Controller{
     request =>
       request.body.asOpt[Transformer].map{ t=>
         Async(
-         (Actors.transformers ? PutTransformer(responderName,t)).asPromise.map(responseFromTransformer)
+          (Actors.transformers ? PutTransformer(responderName,t)).asPromise.map(responseFromTransformer)
         )
       }.getOrElse(InternalServerError)
   }

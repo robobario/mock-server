@@ -8,10 +8,17 @@
         <form class="form-inline">
                 <input id="token" type="text" value placeholder="token name">
                 <input id="queryParamName" type="text" value placeholder="query parameter name">
-                <a class="btn">Set Rule</a>
+                <a class="btn" id="set">Set Rule</a>
         </form>
         <h3>Query Parameter Substitution Rule</h3>
         <p id="rule"></p>
+        <a class="btn btn-primary" id="update">Save/Update</a>
+        <div class="alert alert-success close-button" id="success" style="display:none;">Save/Update Successful
+            <button class="close">×</button>
+        </div>
+        <div class="alert alert-error close-button" id="error" style="display:none;">Save/Update Failed
+            <button class="close">×</button>
+        </div>
     </div>
-    <script type="text/javascript">window.transformer(@transformerJson,"@responderName")</script>
+    <script type="text/javascript">window.transformer(@Html(transformerJson),"@responderName")</script>
 }
