@@ -90,15 +90,30 @@ object Responders extends Controller{
 
 
   def createBodyResponse(responder: Responder,request:Request[_]): Promise[SimpleResult[String]] = {
-    def doQueryParamSubstitution(): (String, QuerySubstitutionRule) => String = {
-      (body: String, rule: QuerySubstitutionRule) =>
-        request.queryString.get(rule.queryParamName).map(_.mkString).map{param=>
+    def doQueryParamSubstitution(): (String, SubstitutionRule) => String = {
+      (body: String, rule: SubstitutionRule) =>
+        request.queryString.get(rule.paramName).map(_.mkString).map{param=>
           body.replaceAll(rule.token, param)
         }.getOrElse(body)
     }
 
+    def doHeaderSubstitution(): (String, SubstitutionRule) => String = {
+      (body: String, rule: SubstitutionRule) =>
+        request.headers.get(rule.paramName).map{param=>
+          body.replaceAll(rule.token, param)
+        }.getOrElse(body)
+    }
+
+    def applyRulesToBody(queryRules: scala.Seq[SubstitutionRule],headerRules: scala.Seq[SubstitutionRule]): String = {
+      val querySubbed = queryRules.foldLeft[String](responder.body) {
+        doQueryParamSubstitution()
+      }
+      headerRules.foldLeft[String](querySubbed) {
+        doHeaderSubstitution()
+      }
+    }
     (Actors.transformers ? GetTransformer(responder.name)).map{
-      case Some(Transformer(queryParam))=> queryParam.foldLeft[String](responder.body){doQueryParamSubstitution()}
+      case Some(Transformer(queryParam,headerParam))=> applyRulesToBody(queryParam,headerParam)
       case _ => responder.body
     }.map(body => Ok(body).withHeaders(responder.headers: _*)).asPromise
   }

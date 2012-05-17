@@ -5,26 +5,25 @@ import akka.pattern.ask
 import play.api.libs.concurrent._
 import play.api.mvc.{Result, Action, Controller}
 import akka.util.Timeout
-import play.api.Logger
 
-case class Transformer(queryParamSubstitutions : Seq[QuerySubstitutionRule])
-case class QuerySubstitutionRule(token:String, queryParamName:String)
+case class Transformer(queryParamSubstitutions : Seq[SubstitutionRule],headerSubstitutions : Seq[SubstitutionRule])
+case class SubstitutionRule(token:String, paramName:String)
 
 object Transformers extends Controller{
   implicit val timeout:Timeout = 5000
 
-  implicit object QuerySubstitutionRuleFormat extends Format[QuerySubstitutionRule] {
+  implicit object QuerySubstitutionRuleFormat extends Format[SubstitutionRule] {
     def reads(json: JsValue) = {
-      QuerySubstitutionRule(
+      SubstitutionRule(
         (json \ "token").as[String],
-        (json \ "queryParamName").as[String]
+        (json \ "paramName").as[String]
       )
     }
 
-    def writes(transformer: QuerySubstitutionRule) = {
+    def writes(transformer: SubstitutionRule) = {
         JsObject(  Seq(
           "token" -> JsString(transformer.token),
-          "queryParamName" -> JsString(transformer.queryParamName)
+          "paramName" -> JsString(transformer.paramName)
         )
       )
     }
@@ -32,11 +31,14 @@ object Transformers extends Controller{
 
   implicit object TransformerFormat extends Format[Transformer] {
     def reads(json: JsValue) = {
-      Transformer((json \ "queryParamSubstitutions").asOpt[List[QuerySubstitutionRule]].getOrElse(List()))
+      Transformer((json \ "queryParamSubstitutions").asOpt[List[SubstitutionRule]].getOrElse(List()),
+        (json \ "headerSubstitutions").asOpt[List[SubstitutionRule]].getOrElse(List()))
     }
 
     def writes(transformer: Transformer) = {
-      JsObject(Seq("queryParamSubstitutions" -> JsArray(transformer.queryParamSubstitutions.map(q => Json.toJson(q)))))
+      JsObject(Seq("queryParamSubstitutions" -> JsArray(transformer.queryParamSubstitutions.map(q => Json.toJson(q))),
+                   "headerSubstitutions" -> JsArray(transformer.headerSubstitutions.map(q => Json.toJson(q)))
+      ))
     }
   }
 

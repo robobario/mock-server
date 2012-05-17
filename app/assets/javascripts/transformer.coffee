@@ -5,14 +5,23 @@ class Transformer
   putQueryParamRule: (token, queryParamName) ->
       if !(@transformerJson.queryParamSubstitutions?)
           @transformerJson.queryParamSubstitutions = []
-      @transformerJson.queryParamSubstitutions = [{token : token, queryParamName: queryParamName}]
-  getRule: () ->
+      @transformerJson.queryParamSubstitutions = [{token : token, paramName: queryParamName}]
+  putHeaderParamRule: (token, headerParamName) ->
+    if !(@transformerJson.headerSubstitutions?)
+      @transformerJson.headerSubstitutions = []
+    @transformerJson.headerSubstitutions = [{token : token, paramName: headerParamName}]
+  getQueryParamRule: () ->
       if  @transformerJson.queryParamSubstitutions? && @transformerJson.queryParamSubstitutions.length == 1
           return @transformerJson.queryParamSubstitutions[0]
       else
           return {}
+  getHeaderRule: () ->
+    if  @transformerJson.headerSubstitutions? && @transformerJson.headerSubstitutions.length == 1
+      return @transformerJson.headerSubstitutions[0]
+    else
+      return {}
   getJsonData: ()->
-    JSON.stringify(@transformerJson)
+    JSON.stringify(self.transformerJson)
 
 class View
   self = null
@@ -22,6 +31,7 @@ class View
     $("#set").click((event)->controller.putQueryParamRule($("#token").val(), $("#queryParamName").val()))
     $("#update").click((event)->controller.save())
     $(".close-button").click((event)-> $("#success").hide();$("#error").hide())
+    $("#setHeader").click((event)->controller.putHeaderParamRule($("#headerToken").val(), $("#headerParamName").val()))
   setController: (newController) ->
     controller = newController
     self.update()
@@ -30,11 +40,16 @@ class View
   saveSuccess: () ->
     $("#success").show()
   update: () ->
-    rule = @model.getRule()
-    if(rule.token? && rule.queryParamName?)
-        $("#rule").empty().text(rule.token.toString() + " -> " + rule.queryParamName.toString())
+    rule = @model.getQueryParamRule()
+    if(rule.token? && rule.paramName?)
+        $("#rule").empty().text(rule.token.toString() + " -> " + rule.paramName.toString())
     else
         $("#rule").empty()
+    headerRule = @model.getHeaderRule()
+    if(headerRule.token? && headerRule.paramName?)
+      $("#headerRule").empty().text(headerRule.token.toString() + " -> " + headerRule.paramName.toString())
+    else
+      $("#headerRule").empty()
 
 
 class Controller
@@ -44,6 +59,10 @@ class Controller
   putQueryParamRule: (token, queryParamName) ->
     if token? && queryParamName? && token.length > 1 && queryParamName.length > 1
         @model.putQueryParamRule(token, queryParamName)
+    @view.update()
+  putHeaderParamRule: (token, headerParamName) ->
+    if token? && headerParamName? && token.length > 1 && headerParamName.length > 1
+      @model.putHeaderParamRule(token, headerParamName)
     @view.update()
   save: ()->
     $.ajax({type:"PUT",contentType:"application/json", data:@model.getJsonData(),error:me.onError,success:me.onSuccess})
