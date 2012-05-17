@@ -55,8 +55,8 @@ object Transformers extends Controller{
   def getTransformer(responderName:String) = Action {
     Async(
       (Actors.transformers ? GetTransformer(responderName)).map{
-        case Some(x:Transformer) => Ok(Json.toJson(x))
-        case _ => NotFound
+        case Some(x:Transformer) => Ok(views.html.transformer(Json.stringify(Json.toJson(x)),responderName))
+        case _ => Ok(views.html.transformer("{}",responderName))
       }.asPromise
     )
   }
