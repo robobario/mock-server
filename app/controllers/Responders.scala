@@ -104,16 +104,26 @@ object Responders extends Controller{
         }.getOrElse(body)
     }
 
-    def applyRulesToBody(queryRules: scala.Seq[SubstitutionRule],headerRules: scala.Seq[SubstitutionRule]): String = {
+    def doCookieSubstitution(): (String, SubstitutionRule) => String = {
+      (body: String, rule: SubstitutionRule) =>
+        request.cookies.get(rule.paramName).map{param=>
+          body.replaceAll(rule.token, param.value)
+        }.getOrElse(body)
+    }
+
+    def applyRulesToBody(queryRules: scala.Seq[SubstitutionRule],headerRules: scala.Seq[SubstitutionRule],cookieRules: scala.Seq[SubstitutionRule]): String = {
       val querySubbed = queryRules.foldLeft[String](responder.body) {
         doQueryParamSubstitution()
       }
-      headerRules.foldLeft[String](querySubbed) {
+      val headerSubbed = headerRules.foldLeft[String](querySubbed) {
         doHeaderSubstitution()
+      }
+      cookieRules.foldLeft[String](headerSubbed) {
+        doCookieSubstitution()
       }
     }
     (Actors.transformers ? GetTransformer(responder.name)).map{
-      case Some(Transformer(queryParam,headerParam))=> applyRulesToBody(queryParam,headerParam)
+      case Some(Transformer(queryParam,headerParam,cookieRules))=> applyRulesToBody(queryParam,headerParam,cookieRules)
       case _ => responder.body
     }.map(body => Ok(body).withHeaders(responder.headers: _*)).asPromise
   }

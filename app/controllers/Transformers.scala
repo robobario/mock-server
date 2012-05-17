@@ -6,7 +6,7 @@ import play.api.libs.concurrent._
 import play.api.mvc.{Result, Action, Controller}
 import akka.util.Timeout
 
-case class Transformer(queryParamSubstitutions : Seq[SubstitutionRule],headerSubstitutions : Seq[SubstitutionRule])
+case class Transformer(queryParamSubstitutions : Seq[SubstitutionRule],headerSubstitutions : Seq[SubstitutionRule], cookieSubstitutions : Seq[SubstitutionRule])
 case class SubstitutionRule(token:String, paramName:String)
 
 object Transformers extends Controller{
@@ -32,13 +32,17 @@ object Transformers extends Controller{
   implicit object TransformerFormat extends Format[Transformer] {
     def reads(json: JsValue) = {
       Transformer((json \ "queryParamSubstitutions").asOpt[List[SubstitutionRule]].getOrElse(List()),
-        (json \ "headerSubstitutions").asOpt[List[SubstitutionRule]].getOrElse(List()))
+        (json \ "headerSubstitutions").asOpt[List[SubstitutionRule]].getOrElse(List()),
+        (json \ "cookieSubstitutions").asOpt[List[SubstitutionRule]].getOrElse(List())
+      )
     }
 
     def writes(transformer: Transformer) = {
       JsObject(Seq("queryParamSubstitutions" -> JsArray(transformer.queryParamSubstitutions.map(q => Json.toJson(q))),
-                   "headerSubstitutions" -> JsArray(transformer.headerSubstitutions.map(q => Json.toJson(q)))
-      ))
+                   "headerSubstitutions" -> JsArray(transformer.headerSubstitutions.map(q => Json.toJson(q))),
+                    "cookieSubstitutions" -> JsArray(transformer.cookieSubstitutions.map(q => Json.toJson(q)))
+                   )
+      )
     }
   }
 
