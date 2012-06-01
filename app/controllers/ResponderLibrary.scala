@@ -13,7 +13,7 @@ import play.api.libs.Files
 import play.api.Play.current
 import scala.Predef._
 import play.api.libs.json._
-import java.io.{FilenameFilter, FileDescriptor, PrintWriter, File}
+import java.io.{FilenameFilter, File}
 
 case class Responder(name: String, body: String, headers: Seq[(String, String)], absolutePath: Option[String]) {
 
@@ -40,8 +40,6 @@ object Responder {
   }
 
 }
-
-import Responder.ResponderFormat._
 
 object ResponderLibrary {
 
@@ -128,7 +126,7 @@ class ResponderLibrary extends Actor {
 
   def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit) {
     if (!f.exists()) {
-      f.createNewFile();
+      f.createNewFile()
     }
     val p = new java.io.PrintWriter(f)
     try {
