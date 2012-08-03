@@ -37,6 +37,7 @@
 @helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm",'enctype -> "multipart/form-data", 'class -> "form-horizontal responder-form") {
       <fieldset>
         @helper.textarea(myForm("body"),'_label -> "Response Body",'class -> "input-xxlarge")
+        @helper.inputText(myForm("responseCode"),'_label -> "Response Code",'class -> "input-large")
 
         <div class="form-actions">
             <button type="submit" class="btn">create</button>

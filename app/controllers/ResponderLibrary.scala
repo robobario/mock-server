@@ -15,7 +15,7 @@ import scala.Predef._
 import play.api.libs.json._
 import java.io.{FilenameFilter, File}
 
-case class Responder(name: String, body: String, headers: Seq[(String, String)], absolutePath: Option[String]) {
+case class Responder(name: String, body: String, responseCode : scala.Int = 200, headers: Seq[(String, String)], absolutePath: Option[String]) {
 
   def absoluteUrl: String = {
     routes.Responders.renderResponder(name).url
@@ -26,14 +26,14 @@ object Responder {
 
   implicit object ResponderFormat extends Format[Responder] {
 
-    def reads(json: JsValue): Responder = Responder((json \ "name").as[String], (json \ "body").as[String],
-      (json \ "headers").as[Seq[JsValue]].map(js => (js \ "name").as[String] -> (js \ "value").as[String]),
-      (json \ "url").asOpt[String])
+    def reads(json: JsValue): Responder = Responder(name = (json \ "name").as[String], body = (json \ "body").as[String],
+      headers = (json \ "headers").as[Seq[JsValue]].map(js => (js \ "name").as[String] -> (js \ "value").as[String]),
+      absolutePath = (json \ "url").asOpt[String], responseCode = (json \ "responseCode").as[scala.Int])
 
 
     def writes(r: Responder): JsValue = {
       val list: List[(String, JsValue with Product with Serializable)] = List("name" -> JsString(r.name),
-        "body" -> JsString(r.body), "headers" ->
+        "body" -> JsString(r.body),"responseCode" -> JsNumber(r.responseCode), "headers" ->
           JsArray(r.headers.map(hd => JsObject(List("name" -> JsString(hd._1), "value" -> JsString(hd._2))))))
       JsObject(r.absolutePath.map(filePath => list.::("url" -> JsString(filePath))).getOrElse(list))
     }
@@ -49,7 +49,7 @@ object ResponderLibrary {
 
   case class GetResponder(name: String) extends Event
 
-  case class CreateResponder(name: String, body: String, headers: Seq[(String, String)],
+  case class CreateResponder(name: String, body: String, responseCode :scala.Int = 200, headers: Seq[(String, String)],
                              binary: Option[FilePart[TemporaryFile]]) extends Event
 
   case class GetAll() extends Event
@@ -62,8 +62,8 @@ object ResponderLibrary {
   }
 
 
-  def create(name: String, body: String, binary: Option[FilePart[TemporaryFile]], headers: (String, String)*) = {
-    (Actors.responders ? CreateResponder(name, body, headers, binary)).asPromise.map(f => f.asInstanceOf[Responder])
+  def create(name: String, body: String, responseCode : scala.Int, binary: Option[FilePart[TemporaryFile]], headers: (String, String)*) = {
+    (Actors.responders ? CreateResponder(name = name,body = body,responseCode = responseCode, headers = headers, binary = binary)).asPromise.map(f => f.asInstanceOf[Responder])
   }
 
 
@@ -97,14 +97,14 @@ class ResponderLibrary extends Actor {
 
   def receive = {
     case GetResponder(name) => sender ! responders.get(name)
-    case CreateResponder(name, body, headers, binary) => create(name, body, headers, binary)
+    case CreateResponder(name, body, responseCode, headers, binary) => create(name, body,responseCode, headers, binary)
     case GetAll() => sender ! responders.values
   }
 
 
-  def create(name: String, body: String, headers: Seq[(String, String)], binary: Option[FilePart[TemporaryFile]]) {
+  def create(name: String, body: String,responseCode : scala.Int, headers: Seq[(String, String)], binary: Option[FilePart[TemporaryFile]]) {
     val heads = binary.map(f => headers :+ ("Content-Length" -> f.ref.file.length.toString)).getOrElse(headers)
-    val responder: Responder = Responder(name, body, heads, binary.map(f => moveFile(f, name).getAbsolutePath))
+    val responder: Responder = Responder(name = name,body = body, responseCode = responseCode, headers = heads,absolutePath = binary.map(f => moveFile(f, name).getAbsolutePath))
     val f = new File(ResponderLibrary.documentBase + "/" + name)
     if (!f.exists()) {
       f.mkdirs()

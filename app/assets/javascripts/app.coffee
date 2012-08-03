@@ -21,14 +21,16 @@ class Headers
             headers[header] = null
 
     add: (header) ->
-        this.remove(header)
-        this.pushHeader(header,count)
+        self.remove(header)
+        self.pushHeader(header,count)
         $(".responder-form").append("<input style=\"display:none\" type=\"text\" name=\"headers[" + count + "].name\" value=\"" + header.name + "\"><input style=\"display:none\" type=\"text\" name=\"headers[" + count + "].value\" value=\"" + header.value + "\">")
         $("#headers").append("<li id=\"header_"+count.toString()+"\">"+header.name+"->"+header.value+" <a id=\"delete_"+count+"\" class=\"btn btn-mini\">delete</a></li>")
         $("#delete_"+count.toString()).click(() -> self.remove(header))
         count++
 
 headers = new Headers
+window.addHeader = (headerName,headerVal) ->
+  headers.add(new Header headerName, headerVal)
 
 handleAdd = ->
   toCreate = new Header $("#header_name").val(), $("#header_value").val()

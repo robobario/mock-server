@@ -19,7 +19,7 @@ import play.api.Play.current
 import play.api.Logger
 
 object Responders extends Controller{
-  case class CreateResponder(body: String, headers : List[Header])
+  case class CreateResponder(body: String, headers : List[Header], responseCode : scala.Int)
   case class CreateFileResponder(headers : List[Header])
   case class Header(name:String, value:String)
   implicit val timeout:Timeout = 5000
@@ -30,7 +30,8 @@ object Responders extends Controller{
       "headers" -> list(mapping(
         "name"-> text,
         "value"-> text
-      )(Header.apply)(Header.unapply))
+      )(Header.apply)(Header.unapply)),
+      "responseCode" -> number
     )(CreateResponder.apply)(CreateResponder.unapply)
   )
 
@@ -44,7 +45,7 @@ object Responders extends Controller{
   )
 
   def toResponderForm(responder: Responder): Responders.CreateResponder = {
-     CreateResponder(responder.body,responder.headers.map(h=>Header(h._1,h._2)).toList)
+     CreateResponder(responder.body,responder.headers.map(h=>Header(h._1,h._2)).toList,responder.responseCode)
   }
 
   def show(responderName:String) = Action{
@@ -125,7 +126,7 @@ object Responders extends Controller{
     (Actors.transformers ? GetTransformer(responder.name)).map{
       case Some(Transformer(queryParam,headerParam,cookieRules))=> applyRulesToBody(queryParam,headerParam,cookieRules)
       case _ => responder.body
-    }.map(body => Ok(body).withHeaders(responder.headers: _*)).asPromise
+    }.map(body => Status(responder.responseCode)(body).withHeaders(responder.headers: _*)).asPromise
   }
 
   def binaryResponse(path:String,responder:Responder): Result = {
@@ -134,7 +135,7 @@ object Responders extends Controller{
 
   def handleSubmission(responderName:String, responder: CreateResponder, binary:Option[FilePart[TemporaryFile]]): Result = {
     Async{
-      ResponderLibrary.create(responderName, responder.body,binary,responder.headers.map(header=>header.name -> header.value):_*).map(f=>
+      ResponderLibrary.create(responderName, responder.body,responder.responseCode,binary,responder.headers.map(header=>header.name -> header.value):_*).map(f=>
           Ok(views.html.existingresponder(f))
       )
     }
@@ -142,7 +143,7 @@ object Responders extends Controller{
 
   def handleFileSubmission(responderName:String, responder: CreateFileResponder, binary:Option[FilePart[TemporaryFile]]): Result = {
     Async{
-      ResponderLibrary.create(responderName, "" ,binary,responder.headers.map(header=>header.name -> header.value):_*).map(f=>
+      ResponderLibrary.create(responderName, "" ,200,binary,responder.headers.map(header=>header.name -> header.value):_*).map(f=>
         Ok(views.html.existingresponder(f))
       )
     }
