@@ -24,7 +24,7 @@ class Headers
         self.remove(header)
         self.pushHeader(header,count)
         $(".responder-form").append("<input style=\"display:none\" type=\"text\" name=\"headers[" + count + "].name\" value=\"" + header.name + "\"><input style=\"display:none\" type=\"text\" name=\"headers[" + count + "].value\" value=\"" + header.value + "\">")
-        $("#headers").append("<li id=\"header_"+count.toString()+"\">"+header.name+"->"+header.value+" <a id=\"delete_"+count+"\" class=\"btn btn-mini\">delete</a></li>")
+        $("#headers").append("<li id=\"header_"+count.toString()+"\">"+header.name+"->"+header.value+" <a id=\"delete_"+count+"\" class=\"btn btn-mini btn-danger\">delete</a></li>")
         $("#delete_"+count.toString()).click(() -> self.remove(header))
         count++
 

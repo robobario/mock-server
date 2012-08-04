@@ -1,9 +1,26 @@
-@(links: Iterable[(String,String)])
+@(links: Iterable[(String,String)], form:Form[controllers.Responders.NewResponder])
+@import MyHelpers._
 
 @main("Mock Server") {
-    <h2>Existing Responders</h2>
-    @links.map { nameToLink =>
-        <a href="@nameToLink._2">@nameToLink._1</a>
-    }
+    <div class="hero-unit">
+        <h1>Make A New Responder</h1>
+        <p>
+            Creating a responder provides you with a URL that will respond with the body, http status code and headers specified. You can then specify transformations to apply to the body based on the request.
+        </p>
+        <p>
+            @helper.form(action = routes.Responders.startNew(),'class -> "form-inline"){
+            <input type="text" name="name" value placeholder="responder name">
+            <button type="submit" class="btn btn-primary">Go</button>
+            }
+        </p>
+    </div>
+    <div class="page-header">
+        <h2>Existing Responders</h2>
+    </div>
+    <ul>
+        @links.map { nameToLink =>
+            <li><a href="@nameToLink._2">@nameToLink._1</a></li>
+        }
+    </ul>
     
 }

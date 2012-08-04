@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                                   controllers.Responders.listResponders
+POST    /go                                 controllers.Responders.startNew()
 GET     /:responderName                     controllers.Responders.show(responderName:String)
 GET     /:responderName/edit                controllers.Responders.edit(responderName:String)
 GET     /:responderName/livelog             controllers.Responders.stream(responderName:String)

@@ -23,29 +23,41 @@ class Transformer
       i = findToken(@transformerJson.queryParamSubstitutions,token)
       if i > -1
           @transformerJson.queryParamSubstitutions = deleteFromArray(@transformerJson.queryParamSubstitutions,i)
+  getQueryParamRules: () ->
+    if  @transformerJson.queryParamSubstitutions? && @transformerJson.queryParamSubstitutions.length >= 1
+      return @transformerJson.queryParamSubstitutions
+    else
+      return []
   putHeaderParamRule: (token, headerParamName) ->
     if !(@transformerJson.headerSubstitutions?)
       @transformerJson.headerSubstitutions = []
     @transformerJson.headerSubstitutions = [{token : token, paramName: headerParamName}]
-  putCookieRule: (token, cookieName) ->
-    if !(@transformerJson.cookieSubstitutions?)
-      @transformerJson.cookieSubstitutions = []
-    @transformerJson.cookieSubstitutions = [{token : token, paramName: cookieName}]
-  getQueryParamRules: () ->
-      if  @transformerJson.queryParamSubstitutions? && @transformerJson.queryParamSubstitutions.length >= 1
-          return @transformerJson.queryParamSubstitutions
-      else
-          return []
   getHeaderRule: () ->
     if  @transformerJson.headerSubstitutions? && @transformerJson.headerSubstitutions.length == 1
       return @transformerJson.headerSubstitutions[0]
     else
       return {}
+  removeHeaderRule: (token) ->
+    if !(@transformerJson.headerSubstitutions?)
+      @transformerJson.headerSubstitutions = []
+    i = findToken(@transformerJson.headerSubstitutions,token)
+    if i > -1
+      @transformerJson.headerSubstitutions = deleteFromArray(@transformerJson.headerSubstitutions,i)
+  putCookieRule: (token, cookieName) ->
+    if !(@transformerJson.cookieSubstitutions?)
+      @transformerJson.cookieSubstitutions = []
+    @transformerJson.cookieSubstitutions = [{token : token, paramName: cookieName}]
   getCookieRule: () ->
     if  @transformerJson.cookieSubstitutions? && @transformerJson.cookieSubstitutions.length == 1
       return @transformerJson.cookieSubstitutions[0]
     else
       return {}
+  removeCookieRule: (token) ->
+    if !(@transformerJson.cookieSubstitutions?)
+      @transformerJson.cookieSubstitutions = []
+    i = findToken(@transformerJson.cookieSubstitutions,token)
+    if i > -1
+      @transformerJson.cookieSubstitutions = deleteFromArray(@transformerJson.cookieSubstitutions,i)
   getJsonData: ()->
     JSON.stringify(self.transformerJson)
 
@@ -68,19 +80,19 @@ class View
     $("#success").show()
   addRule: (rule) ->
       if(rule.token? && rule.paramName?)
-          $("#rule").append("<li name=\""+rule.token+"\">").children("li[name=\""+rule.token+"\"]").text(rule.token.toString() + " -> " + rule.paramName.toString()).append("<a href=\"#\" class=\"btn btn-mini\">remove</a>").children("a").click(()->controller.removeQueryParamRule(rule.token))
+          $("#rule").append("<li name=\""+rule.token+"\">").children("li[name=\""+rule.token+"\"]").text(rule.token.toString() + " -> " + rule.paramName.toString()).append("<a href=\"#\" class=\"btn btn-mini btn-danger\">remove</a>").children("a").click(()->controller.removeQueryParamRule(rule.token))
   update: () ->
     rules = @model.getQueryParamRules()
     $("#rule").empty()
     self.addRule(rule) for rule in rules
     headerRule = @model.getHeaderRule()
     if(headerRule.token? && headerRule.paramName?)
-      $("#headerRule").empty().text(headerRule.token.toString() + " -> " + headerRule.paramName.toString())
+      $("#headerRule").empty().append("<li>").children("li").text(headerRule.token.toString() + " -> " + headerRule.paramName.toString()).append("<a href=\"#\" class=\"btn btn-mini btn-danger\">remove</a>").children("a").click(()->controller.removeHeaderParamRule(headerRule.token))
     else
       $("#headerRule").empty()
     cookieRule = @model.getCookieRule()
     if(cookieRule.token? && cookieRule.paramName?)
-      $("#cookieRule").empty().text(cookieRule.token.toString() + " -> " + cookieRule.paramName.toString())
+      $("#cookieRule").empty().append("<li>").children("li").text(cookieRule.token.toString() + " -> " + cookieRule.paramName.toString()).append("<a href=\"#\" class=\"btn btn-mini btn-danger\">remove</a>").children("a").click(()->controller.removeCookieRule(cookieRule.token))
     else
       $("#cookieRule").empty()
 
@@ -101,9 +113,17 @@ class Controller
     if token? && headerParamName? && token.length > 1 && headerParamName.length > 1
       @model.putHeaderParamRule(token, headerParamName)
     @view.update()
+  removeHeaderParamRule: (token) ->
+    if token?
+      @model.removeHeaderRule(token)
+    @view.update()
   putCookieRule: (token, cookieName) ->
     if token? && cookieName? && token.length > 1 && cookieName.length > 1
       @model.putCookieRule(token, cookieName)
+    @view.update()
+  removeCookieRule: (token) ->
+    if token?
+      @model.removeCookieRule(token)
     @view.update()
   save: ()->
     $.ajax({type:"PUT",contentType:"application/json", data:@model.getJsonData(),error:me.onError,success:me.onSuccess})

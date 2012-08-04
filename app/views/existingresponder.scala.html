@@ -1,40 +1,44 @@
 @(responder:Responder)
 
 @main("Mock Server") {
-    <div class="row span12">
-        <div class="span6">
-            <h6>Name</h6>
-            <p>@responder.name</p>
-            <h6>Body</h6>
-            <p>@responder.body</p>
-            <h6>Response Code</h6>
-            <p>@responder.responseCode</p>
-            <h6>URL</h6>
-            <p><a href=@responder.absoluteUrl>@responder.absoluteUrl</a></p>
-
-            @if(!responder.headers.isEmpty){
-                <h6>Headers</h6>
-                <ul>
-                @responder.headers.map { header =>
-                    <li><span>@header._1</span> -> <span>@header._2</span></li>
+<div class="row" xmlns="http://www.w3.org/1999/html">
+        <div class="span4">
+            <h2>Responder : @responder.name</h2>
+            <dl class="dl-horizontal">
+                <h6>DETAILS</h6>
+            <dt>Body</dt>
+            <dd>@responder.body</dd>
+            <dt>Response Code</dt>
+            <dd>@responder.responseCode</dd>
+            <dt>URL</dt>
+            <dd><a href=@responder.absoluteUrl>@responder.absoluteUrl</a></dd>
+                @if(!responder.headers.isEmpty){
+                <h6>HEADERS</h6>
+                    @responder.headers.map { header =>
+                    <dt>@header._1</dt><dd>@header._2</dd>
+                    }
                 }
-                </ul>
-            }
+            </dl>
          </div>
-        <div class="span6">
-            <a class="btn btn-large btn-primary" href="@routes.Responders.edit(responder.name)">Edit Da Responder Wot Responds</a>
-            <a class="btn btn-large btn-primary" href="@routes.Transformers.getTransformer(responder.name)">Edit Transformers for this guy</a>
+        <div class="span8">
+            <h2>Log</h2>
+            <div id="messages"></div>
+
+            <script type="text/javascript" charset="utf-8">
+                //            var message = function(msg) {
+                //                $('#messages').prepend('<p>' + msg.message + '</p>')
+                //            }
+            </script>
         </div>
     </div>
     <div class="row">
-        <h2>Log</h2>
-        <div id="messages" class="span12"></div>
-
-        <script type="text/javascript" charset="utf-8">
-//            var message = function(msg) {
-//                $('#messages').prepend('<p>' + msg.message + '</p>')
-//            }
-        </script>
+        <div class="span3">
+            <div class="well">
+                <h2>Actions</h2>
+                <p><a class="btn btn-primary" href="@routes.Responders.edit(responder.name)">Edit Da Responder Wot Responds</a></p>
+                <p><a class="btn btn-primary" href="@routes.Transformers.getTransformer(responder.name)">Edit Transformers for this guy</a></p>
+            </div>
+        </div>
     </div>
 
     <iframe src="@routes.Responders.stream(responder.name)" style="display:none"></iframe>

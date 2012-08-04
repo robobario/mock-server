@@ -2,48 +2,66 @@
 @import MyHelpers._
 
 @main("Mock Server") {
-<div class="row span12">
-    <div class="btn-group button-radio" data-toggle="buttons-radio">
-        <button class="btn btn-primary active" id="textResponse">Text Response</button>
-        <button class="btn btn-primary" id="fileResponse">File Response</button>
-    </div>
-</div>
-<div class="row span12">
-        <form class="form-inline">
-            <input type="text" id="header_name" name="header_name" value="" placeholder="Header Name">
-            <input type="text" id="header_value" name="header_value" value="" placeholder="Header Value">
-            <a class="btn" id="addHeader">Add</a>
-        </form>
-        <ul id="headers"></ul>
-</div>
-<div class="row span12">
-    <div class="btn-group">
-        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-            Content-Type Presets
-            <span class="caret"></span>
-        </a>
-        <ul class="dropdown-menu content-type-dropdown">
-            <li><a name="text/html">html</a></li>
-            <li><a name="application/javascript">javascript</a></li>
-            <li><a name="image/jpeg">jpeg</a></li>
-            <li><a name="image/png">png</a></li>
-            <li><a name="application/json">json</a></li>
-            <li><a name="application/xml">xml</a></li>
-        </ul>
-    </div>
-</div>
-
-<div id="bodyForm" class="row span12">
-@helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm",'enctype -> "multipart/form-data", 'class -> "form-horizontal responder-form") {
-      <fieldset>
-        @helper.textarea(myForm("body"),'_label -> "Response Body",'class -> "input-xxlarge")
-        @helper.inputText(myForm("responseCode"),'_label -> "Response Code",'class -> "input-large")
-
-        <div class="form-actions">
-            <button type="submit" class="btn">create</button>
+<div class="row">
+    <div class=" span12">
+        <div class="well">
+            <div class="btn-group button-radio" data-toggle="buttons-radio">
+                <button class="btn btn-inverse active" id="textResponse">Text Response</button>
+                <button class="btn btn-inverse" id="fileResponse">File Response</button>
+            </div>
         </div>
-      </fieldset>
-     }
+    </div>
+</div>
+
+<div id="bodyForm" class="row">
+        <div class="span12">
+            @helper.form(action = routes.Responders.submit(name),'id -> "createResponderForm",'enctype -> "multipart/form-data", 'class -> "form-horizontal responder-form") {
+
+            <div class="row">
+                <div class="span6">
+                    <div class="page-header">
+                        <h2>Response Body and Code</h2>
+                    </div>
+                    <fieldset>
+                        @helper.textarea(myForm("body"),'_label -> "Response Body",'class -> "input-xlarge")
+                        @helper.inputText(myForm("responseCode"),'_label -> "Response Code",'class -> "input-large")
+                    </fieldset>
+                </div>
+                <div class="span6">
+                    <div class="page-header">
+                        <h2>Headers</h2>
+                    </div>
+                    <div class="btn-group well-small">
+                        <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+                            Content-Type Presets
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu content-type-dropdown">
+                            <li><a name="text/html">html</a></li>
+                            <li><a name="application/javascript">javascript</a></li>
+                            <li><a name="image/jpeg">jpeg</a></li>
+                            <li><a name="image/png">png</a></li>
+                            <li><a name="application/json">json</a></li>
+                            <li><a name="application/xml">xml</a></li>
+                        </ul>
+                    </div>
+                    <div class="well-small">
+                        <input type="text" id="header_name" name="header_name" value="" placeholder="Header Name">
+                        <input type="text" id="header_value" name="header_value" value="" placeholder="Header Value">
+                        <a class="btn" id="addHeader">Add</a>
+                    </div>
+                    <ul id="headers"></ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span12">
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create/Update</button>
+                    </div>
+                </div>
+             </div>
+            }
+        </div>
 </div>
 
 <div id="fileForm" style="display:none" class="row span12">

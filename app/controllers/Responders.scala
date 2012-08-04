@@ -16,10 +16,13 @@ import play.api.mvc.MultipartFormData.FilePart
 import play.api.libs.Files.TemporaryFile
 import java.io.File
 import play.api.Play.current
-import play.api.Logger
+import play.api.data._
+import play.api.data.Forms._
+import play.api.data.validation.Constraints._
 
 object Responders extends Controller{
   case class CreateResponder(body: String, headers : List[Header], responseCode : scala.Int)
+  case class NewResponder(name:String)
   case class CreateFileResponder(headers : List[Header])
   case class Header(name:String, value:String)
   implicit val timeout:Timeout = 5000
@@ -33,6 +36,12 @@ object Responders extends Controller{
       )(Header.apply)(Header.unapply)),
       "responseCode" -> number
     )(CreateResponder.apply)(CreateResponder.unapply)
+  )
+
+  val newResponderForm:Form[NewResponder] = Form(
+    mapping(
+      "name" -> text
+    )(NewResponder.apply)(NewResponder.unapply)
   )
 
   val fileForm:Form[CreateFileResponder] = Form(
@@ -63,7 +72,9 @@ object Responders extends Controller{
   def listResponders = Action{
     implicit request =>
     Async{ResponderLibrary.all.map(responders=>
-      Ok(views.html.index(responders.map(responder => responder.name -> routes.Responders.show(responder.name).absoluteURL(false))))
+      {
+        Ok(views.html.index(responders.map(responder => responder.name -> routes.Responders.show(responder.name).absoluteURL(false)), newResponderForm))
+      }
     )}
   }
 
@@ -157,9 +168,24 @@ object Responders extends Controller{
 
   def submit(responderName:String) = Action {
     implicit request=>
-      val responder: CreateResponder = form.bindFromRequest.get
-      handleSubmission(responderName,responder, None)
+      form.bindFromRequest.fold(
+        hasErrors => Ok(views.html.newresponder(hasErrors, responderName)),
+        success => handleSubmission(responderName,success, None)
+      )
   }
+
+  def startNew() = Action {
+    implicit request=>
+      newResponderForm.bindFromRequest.fold(
+        hasErrors => Async{ResponderLibrary.all.map(responders=>
+        {
+          Ok(views.html.index(responders.map(responder => responder.name -> routes.Responders.show(responder.name).absoluteURL(false)), hasErrors))
+        }
+        )},
+        success => Redirect(routes.Responders.show(success.name))
+      )
+  }
+
 
   //Called from existingresponder.scala.html
   def stream(name:String) = Action {
