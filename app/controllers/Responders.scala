@@ -37,10 +37,9 @@ object Responders extends Controller{
       "responseCode" -> number
     )(CreateResponder.apply)(CreateResponder.unapply)
   )
-
   val newResponderForm:Form[NewResponder] = Form(
     mapping(
-      "name" -> text
+      "name" -> text.verifying((name)=>name.forall(_.isLetterOrDigit))
     )(NewResponder.apply)(NewResponder.unapply)
   )
 
@@ -58,9 +57,12 @@ object Responders extends Controller{
   }
 
   def show(responderName:String) = Action{
+    if(responderName.forall(_.isLetterOrDigit)){
     Async{ResponderLibrary.apply(responderName).map(responder=>
       detailsOrCreationForm(responder, responderName)
-    )}
+    )}       }else{
+      Redirect(routes.Responders.listResponders())
+    }
   }
 
   def edit(responderName:String) = Action{
