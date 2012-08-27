@@ -4,6 +4,7 @@
 
 # Home page
 GET     /                                   controllers.Responders.listResponders
+GET	/crossdomain.xml	    controllers.Assets.at(path="/public",file = "crossdomain.xml")
 POST    /go                                 controllers.Responders.startNew()
 GET     /:responderName                     controllers.Responders.show(responderName:String)
 GET     /:responderName/edit                controllers.Responders.edit(responderName:String)
@@ -24,3 +25,4 @@ GET     /:responderName/responder/           controllers.Responders.renderRespon
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                       controllers.Assets.at(path="/public", file)
+
